@@ -1,4 +1,6 @@
 require("@nomiclabs/hardhat-waffle");
+
+//ADDED: used to read configuration
 require("dotenv").config();
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -18,5 +20,10 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.8.4",
+  solidity: "0.8.9",
+  networks: {
+    locahost : {
+      url: "http://127.0.0.1:8545" //ADDED: localhost network connection 
+    }  
+  },
 };

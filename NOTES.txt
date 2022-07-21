@@ -1,0 +1,59 @@
+**To start hardhat node
+npx hardhat node
+http://127.0.0.1:8545/
+
+**To Compile Solidity
+npx hardhat compile
+
+**Compile and deploy via script
+ npx hardhat run --network localhost ./scripts/1_deploy.js
+
+**interact via javascript console
+npx hardhat console --network localhost
+
+const token = await ethers.getContractAt("Token", "whatever contract address is");
+token.address
+
+//get all the accounts
+const accounts = await ethers.getSigners()
+accounts[0].address //get the 1st address
+
+
+
+Resources
+
+• ERC-20 Standard: https://ethereum.org/en/developers/docs/standards/tokens/erc-20/
+
+• Dai Token: https://etherscan.io/address/0x6b175474e89094c44da98b954eedeac495271d0f#code
+
+• Hardhat config: https://hardhat.org/config/
+
+• Hardhat scripts: https://hardhat.org/guides/scripts.html
+
+• Ethers Contract Factory: https://docs.ethers.io/v5/api/contract/contract-factory/
+
+• Eth Converter: https://eth-converter.com/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
