@@ -17,15 +17,26 @@ contract Token {
     //NOTE: Solidy does not use decimals at all
     uint256 public totalSupply; //1,000,000. * 10^18
 
+    //track balances - hashtable data structure key/value
+    mapping(address => uint256) public balanceOf;
+
+    //send tokens
+
+
+
     //NOTE: unit256 will default to memory so no need to declare the storage location but is required for string
     //byte32 may be better to use that string to save on gas
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        uint256 _totalSupply
-    ) {
+    constructor(string memory _name, string memory _symbol, uint256 _totalSupply) {
         name = _name;
         symbol = _symbol;
         totalSupply = _totalSupply * (10**decimals);
+
+        //store on the blockchain in the hashtable which is sort of like a database on the blockchain
+        //msg.sender is an address, msg is a global variable, this is the address of the person calling
+        //the function or in this case the user deploying will be the msg.sender in the constructor
+
+        //NOTE: By default hardhat will use the 1st test account as the deployment account
+        balanceOf[msg.sender] = totalSupply;
+        
     }
 }

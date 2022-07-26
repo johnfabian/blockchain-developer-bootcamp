@@ -10,11 +10,7 @@ const getEtherAmountInWei = (ethAmount) => {
 
 describe("Token", () => {
 
-    let token;
-    const name = "Dapp University";
-    const symbol = "DAPP";
-    const totalSupply = 1000000;
-    const decimals = "18"
+    let token, accounts, deployer;
 
     //setup test, runs before each test below
     beforeEach(async () => {
@@ -22,12 +18,19 @@ describe("Token", () => {
         const Token = await ethers.getContractFactory("Token");
 
         //deploy, NOTE :This will run the constructor
-        token = await Token.deploy(name, symbol, totalSupply.toString());
+        token = await Token.deploy('Dapp University', 'DAPP', '1000000');
+
+        accounts = await ethers.getSigners();
+        deployer = accounts[0];
 
     });
 
 
     describe("Deployment", () => {
+        const name = "Dapp University";
+        const symbol = "DAPP";
+        const totalSupply = getEtherAmountInWei("1000000");
+        const decimals = "18"
 
         //name
         it("Has correct name", async () => {
@@ -52,7 +55,14 @@ describe("Token", () => {
         it("Has correct totalSupply", async () => {
 
             //check that name is correct
-            expect(await token.totalSupply()).to.equal(getEtherAmountInWei(totalSupply.toString()));
+            expect(await token.totalSupply()).to.equal(totalSupply);
+        });
+
+
+        it("Assigns total supply to deploy", async () => {
+
+            //by default, hardhat will set the deployer will be the first test account 
+            expect(await token.balanceOf(deployer.address)).to.equal(totalSupply);
         });
 
 
