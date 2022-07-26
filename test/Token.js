@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { result } = require("lodash");
 
 const getEtherAmountInWei = (ethAmount) => {
     //use https://eth-converter.com/ to get the value in wei of 1,000,000 tokens
@@ -10,7 +11,7 @@ const getEtherAmountInWei = (ethAmount) => {
 
 describe("Token", () => {
 
-    let token, accounts, deployer;
+    let token, accounts, deployer, receiver;
 
     //setup test, runs before each test below
     beforeEach(async () => {
@@ -22,6 +23,7 @@ describe("Token", () => {
 
         accounts = await ethers.getSigners();
         deployer = accounts[0];
+        receiver = accounts[1];
 
     });
 
@@ -66,9 +68,67 @@ describe("Token", () => {
         });
 
 
+
+
     })
 
 
+    describe("Sending Tokens", () => {
+
+        describe("Success", () => {
+
+            let amount, transaction, result;
+
+            beforeEach(async () => {
+                //setup the test
+
+                amount = getEtherAmountInWei(100);
+                transaction = await token.connect(deployer).transfer(receiver.address, amount);
+
+                //wait till transaction completes
+                result = await transaction.wait();
+            });
+
+            it("Transfers token balances", async () => {
+                //ensure tokens were transferred
+                expect(await token.balanceOf(deployer.address)).to.equal(getEtherAmountInWei(999900));
+                expect(await token.balanceOf(receiver.address)).to.equal(amount);
+            });
+
+            it("Emits an transfer event", async () => {
+
+                const event = result.events[0];
+                expect(event.event).to.equal("Transfer");
+
+                const args = event.args;
+                expect(args.from).to.equal(deployer.address);
+                expect(args.to).to.equal(receiver.address);
+                expect(args.value).to.equal(amount);
+            });
+
+        });
+
+
+        describe("Failure", () => {
+
+            let amount, transaction
+
+            it("rejects insufficent balances", async()=>{
+
+                //transfer more tokens than deployers has
+
+                const invalidAmount = getEtherAmountInWei(1000000000);
+
+                await expect(token.connect(deployer).transfer(receiver.address, invalidAmount)).to.be.reverted
+
+
+            });
+
+
+        });
+
+
+    });
 
 
 

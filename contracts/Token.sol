@@ -20,13 +20,21 @@ contract Token {
     //track balances - hashtable data structure key/value
     mapping(address => uint256) public balanceOf;
 
-    //send tokens
-
-
+    //required by the ERC 20 standard, must emit and event in the transfer function
+    //indexed means it will be easier to filter events
+    event Transfer(
+        address indexed from, 
+        address indexed to, 
+        uint256 value
+        );
 
     //NOTE: unit256 will default to memory so no need to declare the storage location but is required for string
     //byte32 may be better to use that string to save on gas
-    constructor(string memory _name, string memory _symbol, uint256 _totalSupply) {
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint256 _totalSupply
+    ) {
         name = _name;
         symbol = _symbol;
         totalSupply = _totalSupply * (10**decimals);
@@ -37,6 +45,25 @@ contract Token {
 
         //NOTE: By default hardhat will use the 1st test account as the deployment account
         balanceOf[msg.sender] = totalSupply;
-        
+    }
+
+    function transfer(address _to, uint256 _value)
+        public
+        returns (bool success)
+    {
+
+        require(balanceOf[msg.sender] >= _value, "Insufficient Funds");
+
+
+        //Deduct tokens from spender
+        balanceOf[msg.sender] = balanceOf[msg.sender] - _value;
+
+        //Credit tokens to receiver
+        balanceOf[_to] = balanceOf[_to] + _value;
+
+        //emit event
+        emit Transfer(msg.sender, _to, _value);
+
+        return true;
     }
 }
