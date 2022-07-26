@@ -53,6 +53,7 @@ contract Token {
     {
 
         require(balanceOf[msg.sender] >= _value, "Insufficient Funds");
+        require(_to != address(0));
 
 
         //Deduct tokens from spender
