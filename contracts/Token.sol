@@ -20,13 +20,22 @@ contract Token {
     //track balances - hashtable data structure key/value
     mapping(address => uint256) public balanceOf;
 
+    //track allowances
+    //adds a key of the owner address and returns a mapping of the spenders token amounts
+    mapping(address => mapping(address => uint256)) public allowance;
+
     //required by the ERC 20 standard, must emit and event in the transfer function
     //indexed means it will be easier to filter events
     event Transfer(
         address indexed from, 
         address indexed to, 
+        uint256 value);
+
+    event Approval(
+        address indexed owner,
+        address indexed spender,
         uint256 value
-        );
+    );
 
     //NOTE: unit256 will default to memory so no need to declare the storage location but is required for string
     //byte32 may be better to use that string to save on gas
@@ -47,14 +56,19 @@ contract Token {
         balanceOf[msg.sender] = totalSupply;
     }
 
+    /**
+        Transfer from the callers wallet to an address
+     */
     function transfer(address _to, uint256 _value)
         public
         returns (bool success)
     {
-
+        //send must have available funds
         require(balanceOf[msg.sender] >= _value, "Insufficient Funds");
-        require(_to != address(0));
 
+        //must be valid address
+        //TODO: I think there are move validations since I was able to pass less 0s and test passed
+        require(_to != address(0));
 
         //Deduct tokens from spender
         balanceOf[msg.sender] = balanceOf[msg.sender] - _value;
@@ -64,6 +78,24 @@ contract Token {
 
         //emit event
         emit Transfer(msg.sender, _to, _value);
+
+        return true;
+    }
+
+    //same signature as the ERC-20
+    function approve(address _spender, uint256 _value)
+        public
+        returns (bool success)
+    {
+        
+        require(_spender != address(0));
+
+        //this is how to set a nested mapping
+        //msg.sender is the owner
+        allowance[msg.sender][_spender] = _value;
+
+        //emit event
+        emit Approval(msg.sender, _spender, _value);
 
         return true;
     }
