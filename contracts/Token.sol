@@ -26,10 +26,7 @@ contract Token {
 
     //required by the ERC 20 standard, must emit and event in the transfer function
     //indexed means it will be easier to filter events
-    event Transfer(
-        address indexed from, 
-        address indexed to, 
-        uint256 value);
+    event Transfer(address indexed from, address indexed to, uint256 value);
 
     event Approval(
         address indexed owner,
@@ -66,18 +63,8 @@ contract Token {
         //send must have available funds
         require(balanceOf[msg.sender] >= _value, "Insufficient Funds");
 
-        //must be valid address
-        //TODO: I think there are move validations since I was able to pass less 0s and test passed
-        require(_to != address(0));
-
-        //Deduct tokens from spender
-        balanceOf[msg.sender] = balanceOf[msg.sender] - _value;
-
-        //Credit tokens to receiver
-        balanceOf[_to] = balanceOf[_to] + _value;
-
-        //emit event
-        emit Transfer(msg.sender, _to, _value);
+        //transfer
+        _transfer(msg.sender, _to, _value);
 
         return true;
     }
@@ -87,7 +74,6 @@ contract Token {
         public
         returns (bool success)
     {
-        
         require(_spender != address(0));
 
         //this is how to set a nested mapping
@@ -99,4 +85,45 @@ contract Token {
 
         return true;
     }
+
+    //internal helper for transfer and transferFrom, moves tokens from one account to another
+    function _transfer(
+        address _from,
+        address _to,
+        uint256 _value
+    ) internal {
+        //must be valid address
+        //TODO: I think there are move validations since I was able to pass less 0s and test passed
+        require(_to != address(0));
+
+        //Deduct tokens from spender
+        balanceOf[_from] = balanceOf[_from] - _value;
+
+        //Credit tokens to receiver
+        balanceOf[_to] = balanceOf[_to] + _value;
+
+        //emit event
+        emit Transfer(_from, _to, _value);
+    }
+
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) public returns (bool success) {
+        //check approval, value has to be leq than what is approved
+        require(_value <= allowance[_from][msg.sender]);
+
+        //check the from has enough tokens for what is approved
+        require(_value <= balanceOf[_from]);
+
+        //reset the allowance, prevent double spending, must go back through approval workflow
+        allowance[_from][msg.sender] = allowance[_from][msg.sender] - _value;
+
+        //spend tokens
+        _transfer(_from, _to, _value);
+
+        return true;
+    }
+    
 }

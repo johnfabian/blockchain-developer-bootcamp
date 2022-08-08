@@ -22,9 +22,9 @@ describe("Token", () => {
         token = await Token.deploy('Dapp University', 'DAPP', '1000000');
 
         accounts = await ethers.getSigners();
-        deployer = accounts[0];
-        receiver = accounts[1];
-        exchange = accounts[2];
+        deployer = accounts[0]; //deployer account is the first test account by default
+        receiver = accounts[1]; //receiver account
+        exchange = accounts[2]; //exchange account
 
     });
 
@@ -173,6 +173,64 @@ describe("Token", () => {
         });
 
     });
+
+    describe("Delegated Token Transfers", () => {
+
+        let amount, transaction, result;
+
+        beforeEach(async () => {
+            amount = tokens(100);
+
+            //Step 1: approve first, the deployer approves the exhange in said amount
+            transaction = await token.connect(deployer).approve(exchange.address, amount);           
+            result = await transaction.wait();
+        });
+
+        describe("success", ()=>{
+
+            beforeEach(async () => {
+                   
+                //the exchange transfers from the deployer to the reciever
+                transaction = await token.connect(exchange).transferFrom(deployer.address, receiver.address, amount);           
+                result = await transaction.wait();
+            });
+
+            it('should allow the exchange to transfer from deployer to receiver', async()=> {
+
+                expect(await token.balanceOf(deployer.address)).to.be.equal(tokens(999900));
+                expect(await token.balanceOf(receiver.address)).to.be.equal(amount);
+
+            });
+
+            it('resets the allowance',async()=>  {
+                expect(await token.allowance(deployer.address, exchange.address)).to.be.equal(0);
+
+            });
+
+            it("emits an transfer event", async () => {
+
+                const event = result.events[0];
+                expect(event.event).to.equal("Transfer");
+
+                const args = event.args;
+                expect(args.from).to.equal(deployer.address);
+                expect(args.to).to.equal(receiver.address);
+                expect(args.value).to.equal(amount);
+            });
+
+        })
+
+        describe("failure", ()=>{
+
+            it('Rejects insufficient amounts', async () => {
+                const invalidAmount = tokens(100000000)
+                await expect(token.connect(exchange).transferFrom(deployer.address, receiver.address, invalidAmount)).to.be.reverted
+            });
+
+        })
+
+    });
+
 
 
 
